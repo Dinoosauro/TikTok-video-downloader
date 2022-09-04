@@ -1,5 +1,6 @@
-let videoDesc = Array(1).fill("");
-let videoLink = Array(1).fill("");
+var DownloadViaYtDlp = false;
+var videoDesc = Array(1).fill("");
+var videoLink = Array(1).fill("");
 var videoName = Array(1).fill("");
 var videoId = Array(1).fill("");
 var videoProgress = 0;
@@ -57,11 +58,22 @@ function getTikTok() {
             getFutureCursor = getJson.cursor;
             prepareLink = prepareLink.replace("&cursor=0&", "&cursor=" + getFutureCursor + "&");
             console.log(getFutureCursor);
-           getTikTok();
+            getTikTok();
         } else {
-           actuallyDownload();
+            if (!DownloadViaYtDlp) {
+                actuallyDownload();
+            } else {
+                prepareYtDlp();
+            }
         }
     }, Math.floor(Math.random() * 1500 + 50));
+}
+function prepareYtDlp() {
+    var setupYtDlpScript = "";
+    for (let i = 0; i < videoId.length; i++) {
+        setupYtDlpScript = setupYtDlpScript + "\nyt-dlp https://www.tiktok.com/@" + videoName[i] + "/video/" + videoId[i];
+    }
+    forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent(setupYtDlpScript), "tiktokliked.bat");
 }
 var downloadProgress = 0;
 function actuallyDownload() {
