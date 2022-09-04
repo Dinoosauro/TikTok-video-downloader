@@ -61,7 +61,7 @@ function getTikTok() {
         } else {
            actuallyDownload();
         }
-    }, Math.floor(Math.random() * 5000 + 50));
+    }, Math.floor(Math.random() * 1500 + 50));
 }
 var downloadProgress = 0;
 function actuallyDownload() {
