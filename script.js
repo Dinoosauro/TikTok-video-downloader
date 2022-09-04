@@ -29,7 +29,7 @@ function clickOn() {
     if (navigator.appVersion.indexOf("Mac") != -1) OSName = "macOS";
     if (navigator.appVersion.indexOf("X11") != -1) OSName = "UNIX";
     if (navigator.appVersion.indexOf("Linux") != -1) OSName = "linux";
-    prepareLink = "https://www.tiktok.com/api/favorite/item_list/?aid=1988&app_language=" + appLang + "&app_name=tiktok_web&battery_info=0.50&browser_language=en&browser_name=" + navigator.appCodeName + "&browser_online=true&browser_platform=" + navigator.platform + "&browser_version=" + encodeURIComponent(navigator.appVersion).replace("(", "%28").replace(")", "%29") + "&channel=tiktok_web&cookie_enabled=true&count=30&cursor=0&device_id=" + deviceId + "&device_platform=web_pc&focus_state=true&from_page=user&history_len=3&is_fullscreen=false&is_page_visible=true&language=" + appLang + "&os=" + OSName + "&priority_region=" + getRegion + "&referer=&region=" + getRegion + "IT&screen_height=" + screen.height + "&screen_width=" + screen.width + "&secUid=" + token;
+    prepareLink = "https://www.tiktok.com/api/favorite/item_list/?aid=1988&app_language=" + appLang + "&app_name=tiktok_web&battery_info=0.50&browser_language=en&browser_name=" + navigator.appCodeName + "&browser_online=true&browser_platform=" + navigator.platform + "&browser_version=" + encodeURIComponent(navigator.appVersion).replaceAll("(", "%28").replaceAll(")", "%29") + "&channel=tiktok_web&cookie_enabled=true&count=30&cursor=0&device_id=" + deviceId + "&device_platform=web_pc&focus_state=true&from_page=user&history_len=3&is_fullscreen=false&is_page_visible=true&language=" + appLang + "&os=" + OSName + "&priority_region=" + getRegion + "&referer=&region=" + getRegion + "IT&screen_height=" + screen.height + "&screen_width=" + screen.width + "&secUid=" + token;
     getTikTok();
 }
 function getTikTok() {
@@ -67,7 +67,7 @@ var downloadProgress = 0;
 function actuallyDownload() {
     infoText.innerHTML = "Downloaded liked TikTok: " + downloadProgress;
     setTimeout(function () {
-        forceDownload(videoLink[downloadProgress], videoDesc[downloadProgress].replace("/", "").replace("?", "").replace("<", "").replace(">", "").replace("\\", "").replace(":", "").replace("*", "").replace("|", "").replace("\"", "") + "[" + videoName[downloadProgress] + " - " + videoId[downloadProgress] + "].mp4");
+        forceDownload(videoLink[downloadProgress], videoDesc[downloadProgress].replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "") + "[" + videoName[downloadProgress] + " - " + videoId[downloadProgress] + "].mp4");
         downloadProgress++;
         if (downloadProgress < videoLink.length) {
             actuallyDownload();
