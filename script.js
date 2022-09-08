@@ -7,31 +7,52 @@ var videoProgress = 0;
 var prepareLink = "";
 var infoText = document.createElement("label");
 function clickOn() {
-    var addInfoTop = document.createElement("div");
-    addInfoTop.width = "100%";
-    addInfoTop.height = "100px";
-    addInfoTop.style.paddingLeft = "200px";
-    addInfoTop.style.paddingTop = "100px";
-    infoText.innerHTML = "Preparing for download...";
-    document.body.prepend(addInfoTop);
-    addInfoTop.appendChild(infoText);
-    var tikTokHtml = document.body.innerHTML;
-    var token = tikTokHtml.substring(tikTokHtml.indexOf(",\"secUid\":\"")).replace(",\"secUid\":\"", "");
-    token = token.substring(0, token.indexOf("\""));
-    console.log("Your token is: " + token);
-    var deviceId = tikTokHtml.substring(tikTokHtml.indexOf("\"wid\":\"")).replace("\"wid\":\"", "");
-    deviceId = deviceId.substring(0, deviceId.indexOf("\""));
-    var appLang = tikTokHtml.substring(tikTokHtml.indexOf("hrefLang=\"")).replace("hrefLang=\"", "");
-    appLang = appLang.substring(0, appLang.indexOf("\""));
-    var getRegion = tikTokHtml.substring(tikTokHtml.indexOf(",\"region\":\"")).replace(",\"region\":\"", "");
-    getRegion = getRegion.substring(0, getRegion.indexOf("\""));
-    var OSName = "windows";
-    if (navigator.appVersion.indexOf("Win") != -1) OSName = "windows";
-    if (navigator.appVersion.indexOf("Mac") != -1) OSName = "macOS";
-    if (navigator.appVersion.indexOf("X11") != -1) OSName = "UNIX";
-    if (navigator.appVersion.indexOf("Linux") != -1) OSName = "linux";
-    prepareLink = "https://www.tiktok.com/api/favorite/item_list/?aid=1988&app_language=" + appLang + "&app_name=tiktok_web&battery_info=0.50&browser_language=en&browser_name=" + navigator.appCodeName + "&browser_online=true&browser_platform=" + navigator.platform + "&browser_version=" + encodeURIComponent(navigator.appVersion).replaceAll("(", "%28").replaceAll(")", "%29") + "&channel=tiktok_web&cookie_enabled=true&count=30&cursor=0&device_id=" + deviceId + "&device_platform=web_pc&focus_state=true&from_page=user&history_len=3&is_fullscreen=false&is_page_visible=true&language=" + appLang + "&os=" + OSName + "&priority_region=" + getRegion + "&referer=&region=" + getRegion + "IT&screen_height=" + screen.height + "&screen_width=" + screen.width + "&secUid=" + token;
-    getTikTok();
+    if (document.location.href.indexOf("/video/") !== -1) {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open("GET", document.location.href, false);
+        xmlHttp.send(null);
+        var documentBody = xmlHttp.responseText;
+        var webLink = documentBody.substring(documentBody.indexOf("\"preloadList\":[{\"url\":\"")).replace("\"preloadList\":[{\"url\":\"", "");
+        webLink = webLink.substring(0, webLink.indexOf("\"")).replaceAll("\\u002F", "/");
+        var description = documentBody.substring(documentBody.indexOf("\",\"desc\":\"")).replace("\",\"desc\":\"", "");
+        description = description.substring(0, description.indexOf("\""));
+        var videoId = documentBody.substring(documentBody.indexOf("\"video\":{\"id\":\"")).replace("\"video\":{\"id\":\"", "");
+        videoId = videoId.substring(0, videoId.indexOf("\""));
+        var videoAuthor = document.location.href.substring(document.location.href.indexOf("@"));
+        videoAuthor = videoAuthor.substring(0, videoAuthor.indexOf("/"));
+        var composeFileName = description + " - " + videoId + " [" + videoAuthor + "]";
+        composeFileName = composeFileName.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "");
+        var response = prompt("The TikTok video will be opened in a new window, so that can be downloaded. You can press Ctrl + C to copy the suggested file name.", composeFileName);
+        if (response != null || response != "") {
+            window.open(webLink);
+        }
+    } else {
+        var addInfoTop = document.createElement("div");
+        addInfoTop.width = "100%";
+        addInfoTop.height = "100px";
+        addInfoTop.style.paddingLeft = "200px";
+        addInfoTop.style.paddingTop = "100px";
+        infoText.innerHTML = "Preparing for download...";
+        document.body.prepend(addInfoTop);
+        addInfoTop.appendChild(infoText);
+        var tikTokHtml = document.body.innerHTML;
+        var token = tikTokHtml.substring(tikTokHtml.indexOf(",\"secUid\":\"")).replace(",\"secUid\":\"", "");
+        token = token.substring(0, token.indexOf("\""));
+        console.log("Your token is: " + token);
+        var deviceId = tikTokHtml.substring(tikTokHtml.indexOf("\"wid\":\"")).replace("\"wid\":\"", "");
+        deviceId = deviceId.substring(0, deviceId.indexOf("\""));
+        var appLang = tikTokHtml.substring(tikTokHtml.indexOf("hrefLang=\"")).replace("hrefLang=\"", "");
+        appLang = appLang.substring(0, appLang.indexOf("\""));
+        var getRegion = tikTokHtml.substring(tikTokHtml.indexOf(",\"region\":\"")).replace(",\"region\":\"", "");
+        getRegion = getRegion.substring(0, getRegion.indexOf("\""));
+        var OSName = "windows";
+        if (navigator.appVersion.indexOf("Win") != -1) OSName = "windows";
+        if (navigator.appVersion.indexOf("Mac") != -1) OSName = "macOS";
+        if (navigator.appVersion.indexOf("X11") != -1) OSName = "UNIX";
+        if (navigator.appVersion.indexOf("Linux") != -1) OSName = "linux";
+        prepareLink = "https://www.tiktok.com/api/favorite/item_list/?aid=1988&app_language=" + appLang + "&app_name=tiktok_web&battery_info=0.50&browser_language=en&browser_name=" + navigator.appCodeName + "&browser_online=true&browser_platform=" + navigator.platform + "&browser_version=" + encodeURIComponent(navigator.appVersion).replaceAll("(", "%28").replaceAll(")", "%29") + "&channel=tiktok_web&cookie_enabled=true&count=30&cursor=0&device_id=" + deviceId + "&device_platform=web_pc&focus_state=true&from_page=user&history_len=3&is_fullscreen=false&is_page_visible=true&language=" + appLang + "&os=" + OSName + "&priority_region=" + getRegion + "&referer=&region=" + getRegion + "IT&screen_height=" + screen.height + "&screen_width=" + screen.width + "&secUid=" + token;
+        getTikTok();
+    }
 }
 function getTikTok() {
     infoText.innerHTML = "Getting liked TikToks list (" + videoId.length + ")...";
@@ -103,5 +124,13 @@ function forceDownload(url, fileName) {
         document.body.removeChild(tag);
     }
     xhr.send();
+}
+function copyToClipboard(string) {
+    var area = document.createElement('textarea');
+    area.value = string;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    document.body.removeChild(area);
 }
 clickOn();
