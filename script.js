@@ -1,4 +1,11 @@
+// Change these values as you prefer:
 var DownloadViaYtDlp = false;
+var minRandom = 1800;
+var maxRandom = 5000;
+var maxRandomForLikedDownload = 1500;
+var minRandomForLikedDownload = 50;
+var preferScrolling = false;
+
 var videoDesc = Array(1).fill("");
 var videoLink = Array(1).fill("");
 var videoName = Array(1).fill("");
@@ -22,10 +29,9 @@ function clickOn() {
         videoAuthor = videoAuthor.substring(0, videoAuthor.indexOf("/"));
         var composeFileName = description + " - " + videoId + " [" + videoAuthor + "]";
         composeFileName = composeFileName.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "");
-        var response = prompt("The TikTok video will be opened in a new window, so that can be downloaded. You can press Ctrl + C to copy the suggested file name.", composeFileName);
-        if (response != null || response != "") {
-            window.open(webLink);
-        }
+        forceDownload(webLink, composeFileName);
+    } else if (document.body.innerHTML.indexOf("e33dl3i1 tiktok-ipqbxf-Button-StyledEditButton ehk74z00") == -1 || preferScrolling) {
+        loadWebpage();
     } else {
         var addInfoTop = document.createElement("div");
         addInfoTop.width = "100%";
@@ -54,14 +60,32 @@ function clickOn() {
         getTikTok();
     }
 }
+function loadWebpage() {
+    if (document.body.innerHTML.indexOf("<svg preserveAspectRatio=\"none\" viewBox=\"0 0 200 200\" width=\"48\" height=\"48\" class=\"tiktok-qmnyxf-SvgContainer e1ugmybf1\">") == -1) {
+        window.scrollTo(0, document.body.scrollHeight);
+        setTimeout(function () {
+
+            if (document.body.innerHTML.indexOf("<svg preserveAspectRatio=\"none\" viewBox=\"0 0 200 200\" width=\"48\" height=\"48\" class=\"tiktok-qmnyxf-SvgContainer e1ugmybf1\">") !== -1) {
+                setTimeout(function () {
+                    loadWebpage();
+                }, Math.floor(Math.random() * 2000 + 400));
+            } else {
+                console.log(document.body.innerHTML);
+                getUserVideo();
+            }
+        }, 50);
+    } else {
+        setTimeout(function () {
+            loadWebpage()
+        }, 1000);
+    }
+}
 function getTikTok() {
     infoText.innerHTML = "Getting liked TikToks list (" + videoId.length + ")...";
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open("GET", prepareLink, false);
     xmlHttp.send(null);
-    console.log(xmlHttp.responseText);
     var getJson = JSON.parse(xmlHttp.responseText);
-    console.log(getJson);
     var getFutureCursor = "not required";
 
     for (let i = 0; i < getJson.itemList.length; i++) {
@@ -78,7 +102,6 @@ function getTikTok() {
         if (getJson.hasMore) {
             getFutureCursor = getJson.cursor;
             prepareLink = prepareLink.replace("&cursor=0&", "&cursor=" + getFutureCursor + "&");
-            console.log(getFutureCursor);
             getTikTok();
         } else {
             if (!DownloadViaYtDlp) {
@@ -87,7 +110,55 @@ function getTikTok() {
                 prepareYtDlp();
             }
         }
-    }, Math.floor(Math.random() * 1500 + 50));
+    }, Math.floor(Math.random() * maxRandomForLikedDownload + minRandomForLikedDownload));
+}
+async function getUserVideo() {
+    console.log("here");
+    var videoClass = document.body.getElementsByClassName("tiktok-x6y88p-DivItemContainerV2 e19c29qe7");
+    var integer = 0;
+    function videoGet() {
+        console.log(videoClass[integer].innerHTML);
+        var htmlContent = videoClass[integer].innerHTML;
+        var getLink = htmlContent.substring(htmlContent.indexOf("href=\"")).replace("href=\"");
+        getLink = getLink.substring(0, getLink.indexOf("\""));
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open("GET", document.location.href, false);
+        xmlHttp.send(null);
+        var documentBody = xmlHttp.responseText;
+        var webLink = documentBody.substring(documentBody.indexOf("\"preloadList\":[{\"url\":\"")).replace("\"preloadList\":[{\"url\":\"", "");
+        webLink = webLink.substring(0, webLink.indexOf("\"")).replaceAll("\\u002F", "/");
+        videoLink[integer] = webLink;
+        var getDesc = htmlContent.substring(htmlContent.indexOf("alt=\"")).replace("alt=\"", "");
+        getDesc = getDesc.substring(0, getDesc.indexOf("\""))
+        videoDesc[integer] = getDesc;
+        var getVideoId = getLink.substring(getLink.indexOf("/video/")).replace("/video/", "");
+        videoId = getVideoId;
+        var userName = document.location.href.substring(document.location.href.indexOf("@"));
+        userName = userName.substring(0, userName.indexOf("/"));
+        videoName[integer] = userName;
+        if (!DownloadViaYtDlp) {
+                forceDownload(webLink, getDesc.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "") + "[" + userName + " - " + getVideoId + "].mp4");
+                downloadProgress++;
+                if (downloadProgress < videoLink.length) {
+                    actuallyDownload();
+                }   
+        }
+        integer = integer+1;
+        setNextVideoGet();
+    }
+    videoGet();
+    function setNextVideoGet() {
+        if (integer < videoClass.length) {
+        setInterval(function() {
+            videoGet();
+        }, Math.floor(Math.random() * maxRandom + minRandom));
+    } else {
+        if (DownloadViaYtDlp) {
+            prepareYtDlp();
+        }     
+    }
+    }
+
 }
 function prepareYtDlp() {
     var setupYtDlpScript = "";
@@ -105,11 +176,14 @@ function actuallyDownload() {
         if (downloadProgress < videoLink.length) {
             actuallyDownload();
         }
-    }, Math.floor(Math.random() * 5000 + 1800));
+    }, Math.floor(Math.random() * maxRandom + minRandom));
 }
 
 
 function forceDownload(url, fileName) {
+    if (url.indexOf("undefined") !== -1) {
+        url = url.replace("undefined", "");
+    }
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
     xhr.responseType = "blob";
