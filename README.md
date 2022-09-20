@@ -1,5 +1,5 @@
 # TikTok-video-console-downloader
-Download all the TikTok liked videos, all the TikTok videos from an user and also single TikTok videos by pasting a simple script into the DevTools console. Simple and doesn't require any installation. 
+Download all the TikTok liked videos, all the TikTok videos from an user / from a specific sound etc. and also single TikTok videos by pasting a simple script into the DevTools console. Simple and doesn't require any installation. 
 ## Before you start
 Make sure your browser doesn't require user input to save a download (ex. [Edge requires user input](edge://settings/downloads)). If your browser does this, disable that function from the browser's settings.
 ## How to start
