@@ -1,11 +1,18 @@
 // Change these values as you prefer:
+// DownloadViaYtDlp: enable this if you want to download a batch file that will download TikTok videos via yt-dlp
 var DownloadViaYtDlp = false;
+// minRandom & maxRandom: to avoid lots of calls to TikTok server (and so to avoid captchas or similar), a delay is applied to every download request.
+// You can change these values with the mininum and maxinum time you prefer.
 var minRandom = 1800;
 var maxRandom = 5000;
+// max/minRandomForLikedDownload: the maxinum and the mininum time this script will ask TikTok API to get the next 30 liked videos.
 var maxRandomForLikedDownload = 1500;
 var minRandomForLikedDownload = 50;
+// preferScrolling: instead of directly calling the TikTok API, scroll the webpage to get liked videos. TikTok website then will load the results.
+// Note: independently of this bool, scrolling is done to download all the videos from an user / all the videos that uses a sound etc.
 var preferScrolling = false;
 
+// ---- SCRIPT START ---- 
 var videoDesc = Array(1).fill("");
 var videoLink = Array(1).fill("");
 var videoName = Array(1).fill("");
@@ -15,6 +22,10 @@ var prepareLink = "";
 var infoText = document.createElement("label");
 function clickOn() {
     if (document.location.href.indexOf("/video/") !== -1) {
+        if (DownloadViaYtDlp) {
+            forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent("yt-dlp " + document.location.href), "TikTokSingleVideo.bat");
+            return;
+        }
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.open("GET", document.location.href, false);
         xmlHttp.send(null);
@@ -31,16 +42,10 @@ function clickOn() {
         composeFileName = composeFileName.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "");
         forceDownload(webLink, composeFileName);
     } else if (document.body.innerHTML.indexOf("e33dl3i1 tiktok-ipqbxf-Button-StyledEditButton ehk74z00") == -1 || preferScrolling) {
+        createDiv();
         loadWebpage();
     } else {
-        var addInfoTop = document.createElement("div");
-        addInfoTop.width = "100%";
-        addInfoTop.height = "100px";
-        addInfoTop.style.paddingLeft = "200px";
-        addInfoTop.style.paddingTop = "100px";
-        infoText.innerHTML = "Preparing for download...";
-        document.body.prepend(addInfoTop);
-        addInfoTop.appendChild(infoText);
+        createDiv();
         var tikTokHtml = document.body.innerHTML;
         var token = tikTokHtml.substring(tikTokHtml.indexOf(",\"secUid\":\"")).replace(",\"secUid\":\"", "");
         token = token.substring(0, token.indexOf("\""));
@@ -60,9 +65,19 @@ function clickOn() {
         getTikTok();
     }
 }
+function createDiv() {
+    var addInfoTop = document.createElement("div");
+    addInfoTop.height = "100px";
+    addInfoTop.style.paddingTop = "60px";
+    addInfoTop.style.paddingLeft = "60px";
+    infoText.innerHTML = "Preparing for download...";
+    document.getElementsByClassName("tiktok-1kydcf4-DivHeaderWrapperMain-StyledDivHeaderWrapperMainV2 e10win0d2")[0].prepend(addInfoTop);
+    addInfoTop.appendChild(infoText);
+}
 function loadWebpage() {
     if (document.body.innerHTML.indexOf("<svg preserveAspectRatio=\"none\" viewBox=\"0 0 200 200\" width=\"48\" height=\"48\" class=\"tiktok-qmnyxf-SvgContainer e1ugmybf1\">") == -1) {
         window.scrollTo(0, document.body.scrollHeight);
+        infoText.innerHTML = "Scrolling webpage (getting all items)..."; 
         setTimeout(function () {
 
             if (document.body.innerHTML.indexOf("<svg preserveAspectRatio=\"none\" viewBox=\"0 0 200 200\" width=\"48\" height=\"48\" class=\"tiktok-qmnyxf-SvgContainer e1ugmybf1\">") !== -1) {
@@ -87,7 +102,7 @@ function getTikTok() {
     xmlHttp.send(null);
     var getJson = JSON.parse(xmlHttp.responseText);
     var getFutureCursor = "not required";
-
+    console.log(getJson);
     for (let i = 0; i < getJson.itemList.length; i++) {
         let item = getJson.itemList[i];
         videoDesc[videoProgress] = item.desc;
@@ -117,7 +132,7 @@ async function getUserVideo() {
     var videoClass = document.body.getElementsByClassName("tiktok-x6y88p-DivItemContainerV2 e19c29qe7");
     var integer = 0;
     function videoGet() {
-        console.log(videoClass[integer].innerHTML);
+        infoText.innerHTML = "Downloading video " + (integer + 1) + " of " + videoClass.length; 
         var htmlContent = videoClass[integer].innerHTML;
         var getLink = htmlContent.substring(htmlContent.indexOf("href=\"")).replace("href=\"");
         getLink = getLink.substring(0, getLink.indexOf("\""));
@@ -148,17 +163,27 @@ async function getUserVideo() {
     }
     videoGet();
     function setNextVideoGet() {
+        if (DownloadViaYtDlp) {
+            var ytDlpString = "";
+            for (let i = 0; i < videoClass.length; i++) {
+                var htmlContent = videoClass[i].innerHTML;
+                var getLink = htmlContent.substring(htmlContent.indexOf("href=\"")).replace("href=\"");
+                getLink = getLink.substring(0, getLink.indexOf("\""));
+                if (getLink.indexOf("undefined") !== -1) {
+                    getLink = getLink.replaceAll("undefined", "");
+                }
+                ytDlpString = ytDlpString + "yt-dlp " + getLink + "\n";        
+            }
+            forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent(ytDlpString), "TikTokContent.bat");
+        } else {
         if (integer < videoClass.length) {
         setInterval(function() {
             videoGet();
         }, Math.floor(Math.random() * maxRandom + minRandom));
-    } else {
-        if (DownloadViaYtDlp) {
-            prepareYtDlp();
-        }     
     }
     }
 
+}
 }
 function prepareYtDlp() {
     var setupYtDlpScript = "";
@@ -199,12 +224,5 @@ function forceDownload(url, fileName) {
     }
     xhr.send();
 }
-function copyToClipboard(string) {
-    var area = document.createElement('textarea');
-    area.value = string;
-    document.body.appendChild(area);
-    area.select();
-    document.execCommand('copy');
-    document.body.removeChild(area);
-}
+
 clickOn();
