@@ -41,7 +41,7 @@ function clickOn() {
         var composeFileName = description + " - " + videoId + " [" + videoAuthor + "]";
         composeFileName = composeFileName.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "");
         forceDownload(webLink, composeFileName);
-    } else if (document.body.innerHTML.indexOf("e33dl3i1 tiktok-ipqbxf-Button-StyledEditButton ehk74z00") == -1 || preferScrolling) {
+    } else if (document.body.innerHTML.indexOf("tiktok-ipqbxf-Button-StyledEditButton") == -1 || preferScrolling) {
         createDiv();
         loadWebpage();
     } else {
@@ -71,16 +71,16 @@ function createDiv() {
     addInfoTop.style.paddingTop = "60px";
     addInfoTop.style.paddingLeft = "60px";
     infoText.innerHTML = "Preparing for download...";
-    document.getElementsByClassName("tiktok-1kydcf4-DivHeaderWrapperMain-StyledDivHeaderWrapperMainV2 e10win0d2")[0].prepend(addInfoTop);
+    document.getElementsByClassName("tiktok-1kydcf4-DivHeaderWrapperMain-StyledDivHeaderWrapperMainV2")[0].prepend(addInfoTop);
     addInfoTop.appendChild(infoText);
 }
 function loadWebpage() {
-    if (document.body.innerHTML.indexOf("<svg preserveAspectRatio=\"none\" viewBox=\"0 0 200 200\" width=\"48\" height=\"48\" class=\"tiktok-qmnyxf-SvgContainer e1ugmybf1\">") == -1) {
+    if (document.body.innerHTML.indexOf("<svg preserveAspectRatio=\"none\" viewBox=\"0 0 200 200\" width=\"48\" height=\"48\" class=\"tiktok-qmnyxf-SvgContainer\">") == -1) {
         window.scrollTo(0, document.body.scrollHeight);
         infoText.innerHTML = "Scrolling webpage (getting all items)..."; 
         setTimeout(function () {
 
-            if (document.body.innerHTML.indexOf("<svg preserveAspectRatio=\"none\" viewBox=\"0 0 200 200\" width=\"48\" height=\"48\" class=\"tiktok-qmnyxf-SvgContainer e1ugmybf1\">") !== -1) {
+            if (document.body.innerHTML.indexOf("<svg preserveAspectRatio=\"none\" viewBox=\"0 0 200 200\" width=\"48\" height=\"48\" class=\"tiktok-qmnyxf-SvgContainer\">") !== -1) {
                 setTimeout(function () {
                     loadWebpage();
                 }, Math.floor(Math.random() * 2000 + 400));
@@ -129,7 +129,7 @@ function getTikTok() {
 }
 async function getUserVideo() {
     console.log("here");
-    var videoClass = document.body.getElementsByClassName("tiktok-x6y88p-DivItemContainerV2 e19c29qe7");
+    var videoClass = document.body.getElementsByClassName("tiktok-x6y88p-DivItemContainerV2");
     var integer = 0;
     function videoGet() {
         infoText.innerHTML = "Downloading video " + (integer + 1) + " of " + videoClass.length; 
