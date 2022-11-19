@@ -19,7 +19,11 @@ var videoName = Array(1).fill("");
 var videoId = Array(1).fill("");
 var videoProgress = 0;
 var prepareLink = "";
+var getUserId = document.body.innerHTML;
+getUserId = getUserId.substring(getUserId.indexOf("\",\"uniqueId\":\"")).replace("\",\"uniqueId\":\"", "");
+getUserId = getUserId.substring(0, getUserId.indexOf("\""));
 var infoText = document.createElement("label");
+var oldPrepare = "";
 function clickOn() {
     if (document.location.href.indexOf("/video/") !== -1) {
         if (DownloadViaYtDlp) {
@@ -41,7 +45,7 @@ function clickOn() {
         var composeFileName = description + " - " + videoId + " [" + videoAuthor + "]";
         composeFileName = composeFileName.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "");
         forceDownload(webLink, composeFileName);
-    } else if (document.body.innerHTML.indexOf("tiktok-ipqbxf-Button-StyledEditButton") == -1 || preferScrolling) {
+    } else if (document.location.href.substring(document.location.href.lastIndexOf("/")).indexOf(getUserId) == -1 || preferScrolling) {
         createDiv();
         loadWebpage();
     } else {
@@ -62,6 +66,7 @@ function clickOn() {
         if (navigator.appVersion.indexOf("X11") != -1) OSName = "UNIX";
         if (navigator.appVersion.indexOf("Linux") != -1) OSName = "linux";
         prepareLink = "https://www.tiktok.com/api/favorite/item_list/?aid=1988&app_language=" + appLang + "&app_name=tiktok_web&battery_info=0.50&browser_language=en&browser_name=" + navigator.appCodeName + "&browser_online=true&browser_platform=" + navigator.platform + "&browser_version=" + encodeURIComponent(navigator.appVersion).replaceAll("(", "%28").replaceAll(")", "%29") + "&channel=tiktok_web&cookie_enabled=true&count=30&cursor=0&device_id=" + deviceId + "&device_platform=web_pc&focus_state=true&from_page=user&history_len=3&is_fullscreen=false&is_page_visible=true&language=" + appLang + "&os=" + OSName + "&priority_region=" + getRegion + "&referer=&region=" + getRegion + "IT&screen_height=" + screen.height + "&screen_width=" + screen.width + "&secUid=" + token;
+        oldPrepare = prepareLink;
         getTikTok();
     }
 }
@@ -74,21 +79,22 @@ function createDiv() {
     document.getElementsByClassName("tiktok-1kydcf4-DivHeaderWrapperMain-StyledDivHeaderWrapperMainV2")[0].prepend(addInfoTop);
     addInfoTop.appendChild(infoText);
 }
+var height = document.body.scrollHeight;
 function loadWebpage() {
-    if (document.body.innerHTML.indexOf("<svg preserveAspectRatio=\"none\" viewBox=\"0 0 200 200\" width=\"48\" height=\"48\" class=\"tiktok-qmnyxf-SvgContainer\">") == -1) {
+    if (document.body.innerHTML.indexOf("class=\"tiktok-qmnyxf-SvgContainer\">") == -1) {
         window.scrollTo(0, document.body.scrollHeight);
         infoText.innerHTML = "Scrolling webpage (getting all items)..."; 
         setTimeout(function () {
-
-            if (document.body.innerHTML.indexOf("<svg preserveAspectRatio=\"none\" viewBox=\"0 0 200 200\" width=\"48\" height=\"48\" class=\"tiktok-qmnyxf-SvgContainer\">") !== -1) {
+            if (height !== document.body.scrollHeight) {
                 setTimeout(function () {
+                    height = document.body.scrollHeight;
                     loadWebpage();
                 }, Math.floor(Math.random() * 2000 + 400));
             } else {
-                console.log(document.body.innerHTML);
+                console.log("Downloading videos...");
                 getUserVideo();
             }
-        }, 50);
+        }, 150);
     } else {
         setTimeout(function () {
             loadWebpage()
@@ -102,7 +108,6 @@ function getTikTok() {
     xmlHttp.send(null);
     var getJson = JSON.parse(xmlHttp.responseText);
     var getFutureCursor = "not required";
-    console.log(getJson);
     for (let i = 0; i < getJson.itemList.length; i++) {
         let item = getJson.itemList[i];
         videoDesc[videoProgress] = item.desc;
@@ -116,7 +121,7 @@ function getTikTok() {
 
         if (getJson.hasMore) {
             getFutureCursor = getJson.cursor;
-            prepareLink = prepareLink.replace("&cursor=0&", "&cursor=" + getFutureCursor + "&");
+            prepareLink = oldPrepare.replace("&cursor=0&", "&cursor=" + getFutureCursor + "&");
             getTikTok();
         } else {
             if (!DownloadViaYtDlp) {
@@ -128,7 +133,6 @@ function getTikTok() {
     }, Math.floor(Math.random() * maxRandomForLikedDownload + minRandomForLikedDownload));
 }
 async function getUserVideo() {
-    console.log("here");
     var videoClass = document.body.getElementsByClassName("tiktok-x6y88p-DivItemContainerV2");
     var integer = 0;
     function videoGet() {
