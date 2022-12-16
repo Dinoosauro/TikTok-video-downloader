@@ -1,6 +1,6 @@
 // Change these values as you prefer:
 // DownloadViaYtDlp: enable this if you want to download a batch file that will download TikTok videos via yt-dlp
-var DownloadViaYtDlp = true;
+var DownloadViaYtDlp = false;
 // minRandom & maxRandom: to avoid lots of calls to TikTok server (and so to avoid captchas or similar), a delay is applied to every download request.
 // You can change these values with the mininum and maxinum time you prefer.
 var minRandom = 1800;
