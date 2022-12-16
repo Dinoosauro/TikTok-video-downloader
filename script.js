@@ -1,6 +1,6 @@
 // Change these values as you prefer:
 // DownloadViaYtDlp: enable this if you want to download a batch file that will download TikTok videos via yt-dlp
-var DownloadViaYtDlp = false;
+var DownloadViaYtDlp = true;
 // minRandom & maxRandom: to avoid lots of calls to TikTok server (and so to avoid captchas or similar), a delay is applied to every download request.
 // You can change these values with the mininum and maxinum time you prefer.
 var minRandom = 1800;
@@ -17,8 +17,14 @@ var videoDesc = Array(1).fill("");
 var videoLink = Array(1).fill("");
 var videoName = Array(1).fill("");
 var videoId = Array(1).fill("");
+var beforeYtDlp = "";
+var fileExtension = "bat";
 var videoProgress = 0;
 var prepareLink = "";
+if (navigator.appVersion.indexOf("Win") == -1) {
+    beforeYtDlp = "./";
+    fileExtension = "sh";
+}
 var getUserId = document.body.innerHTML;
 getUserId = getUserId.substring(getUserId.indexOf("\",\"uniqueId\":\"")).replace("\",\"uniqueId\":\"", "");
 getUserId = getUserId.substring(0, getUserId.indexOf("\""));
@@ -27,7 +33,7 @@ var oldPrepare = "";
 function clickOn() {
     if (document.location.href.indexOf("/video/") !== -1) {
         if (DownloadViaYtDlp) {
-            forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent("yt-dlp " + document.location.href), "TikTokSingleVideo.bat");
+            forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent(beforeYtDlp + "yt-dlp " + document.location.href), "TikTokSingleVideo." + fileExtension);
             return;
         }
         var xmlHttp = new XMLHttpRequest();
@@ -83,7 +89,7 @@ var height = document.body.scrollHeight;
 function loadWebpage() {
     if (document.body.innerHTML.indexOf("class=\"tiktok-qmnyxf-SvgContainer\">") == -1) {
         window.scrollTo(0, document.body.scrollHeight);
-        infoText.innerHTML = "Scrolling webpage (getting all items)..."; 
+        infoText.innerHTML = "Scrolling webpage (getting all items)...";
         setTimeout(function () {
             if (height !== document.body.scrollHeight) {
                 setTimeout(function () {
@@ -136,7 +142,7 @@ async function getUserVideo() {
     var videoClass = document.body.getElementsByClassName("tiktok-x6y88p-DivItemContainerV2");
     var integer = 0;
     function videoGet() {
-        infoText.innerHTML = "Downloading video " + (integer + 1) + " of " + videoClass.length; 
+        infoText.innerHTML = "Downloading video " + (integer + 1) + " of " + videoClass.length;
         var htmlContent = videoClass[integer].innerHTML;
         var getLink = htmlContent.substring(htmlContent.indexOf("href=\"")).replace("href=\"");
         getLink = getLink.substring(0, getLink.indexOf("\""));
@@ -156,13 +162,13 @@ async function getUserVideo() {
         userName = userName.substring(0, userName.indexOf("/"));
         videoName[integer] = userName;
         if (!DownloadViaYtDlp) {
-                forceDownload(webLink, getDesc.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "") + "[" + userName + " - " + getVideoId + "].mp4");
-                downloadProgress++;
-                if (downloadProgress < videoLink.length) {
-                    actuallyDownload();
-                }   
+            forceDownload(webLink, getDesc.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "") + "[" + userName + " - " + getVideoId + "].mp4");
+            downloadProgress++;
+            if (downloadProgress < videoLink.length) {
+                actuallyDownload();
+            }
         }
-        integer = integer+1;
+        integer = integer + 1;
         setNextVideoGet();
     }
     videoGet();
@@ -176,25 +182,25 @@ async function getUserVideo() {
                 if (getLink.indexOf("undefined") !== -1) {
                     getLink = getLink.replaceAll("undefined", "");
                 }
-                ytDlpString = ytDlpString + "yt-dlp " + getLink + "\n";        
+                ytDlpString = ytDlpString + beforeYtDlp + "yt-dlp " + getLink + "\n";
             }
-            forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent(ytDlpString), "TikTokContent.bat");
+            forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent(ytDlpString), "TikTokContent." + fileExtension);
         } else {
-        if (integer < videoClass.length) {
-        setInterval(function() {
-            videoGet();
-        }, Math.floor(Math.random() * maxRandom + minRandom));
-    }
-    }
+            if (integer < videoClass.length) {
+                setInterval(function () {
+                    videoGet();
+                }, Math.floor(Math.random() * maxRandom + minRandom));
+            }
+        }
 
-}
+    }
 }
 function prepareYtDlp() {
     var setupYtDlpScript = "";
     for (let i = 0; i < videoId.length; i++) {
-        setupYtDlpScript = setupYtDlpScript + "\nyt-dlp https://www.tiktok.com/@" + videoName[i] + "/video/" + videoId[i];
+        setupYtDlpScript = setupYtDlpScript + "\n" + beforeYtDlp + "yt-dlp https://www.tiktok.com/@" + videoName[i] + "/video/" + videoId[i];
     }
-    forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent(setupYtDlpScript), "tiktokliked.bat");
+    forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent(setupYtDlpScript), "tiktokliked." + fileExtension);
 }
 var downloadProgress = 0;
 function actuallyDownload() {
