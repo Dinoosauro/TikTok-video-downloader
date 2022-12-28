@@ -1,6 +1,8 @@
 // Change these values as you prefer:
 // DownloadViaYtDlp: enable this if you want to download a batch file that will download TikTok videos via yt-dlp
 var DownloadViaYtDlp = false;
+// YtDlpFolder: If you're using macOS / Linux, you might want to add "./" before yt-dlp script if you are using yt-dlp from the same directory the script is located
+var YtDlpFolder = false;
 // minRandom & maxRandom: to avoid lots of calls to TikTok server (and so to avoid captchas or similar), a delay is applied to every download request.
 // You can change these values with the mininum and maxinum time you prefer.
 var minRandom = 1800;
@@ -21,10 +23,9 @@ var beforeYtDlp = "";
 var fileExtension = "bat";
 var videoProgress = 0;
 var prepareLink = "";
-if (navigator.appVersion.indexOf("Win") == -1) {
-    beforeYtDlp = "./";
-    fileExtension = "sh";
-}
+if (YtDlpFolder) beforeYtDlp = "./";
+if (navigator.appVersion.indexOf("Win") == -1) fileExtension = "sh";
+
 var getUserId = document.body.innerHTML;
 getUserId = getUserId.substring(getUserId.indexOf("\",\"uniqueId\":\"")).replace("\",\"uniqueId\":\"", "");
 getUserId = getUserId.substring(0, getUserId.indexOf("\""));
@@ -87,24 +88,29 @@ function createDiv() {
 }
 var height = document.body.scrollHeight;
 function loadWebpage() {
-    if (document.body.innerHTML.indexOf("class=\"tiktok-qmnyxf-SvgContainer\">") == -1) {
-        window.scrollTo(0, document.body.scrollHeight);
-        infoText.innerHTML = "Scrolling webpage (getting all items)...";
-        setTimeout(function () {
-            if (height !== document.body.scrollHeight) {
-                setTimeout(function () {
-                    height = document.body.scrollHeight;
-                    loadWebpage();
-                }, Math.floor(Math.random() * 2000 + 400));
-            } else {
-                console.log("Downloading videos...");
-                getUserVideo();
-            }
-        }, 150);
+    if (!DownloadViaYtDlp) {
+        document.getElementsByClassName("tiktok-1itcwxg-ImgPoster")[0].click();
+        getUserVideo();
     } else {
-        setTimeout(function () {
-            loadWebpage()
-        }, 1000);
+        if (document.body.innerHTML.indexOf("class=\"tiktok-qmnyxf-SvgContainer\">") == -1) {
+            window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+            infoText.innerHTML = "Scrolling webpage (getting all items)...";
+            setTimeout(function () {
+                if (height !== document.body.scrollHeight) {
+                    setTimeout(function () {
+                        height = document.body.scrollHeight;
+                        loadWebpage();
+                    }, Math.floor(Math.random() * 2000 + 400));
+                } else {
+                    console.log("Creating script...");
+                    ytDlpScript();
+                }
+            }, 150);
+        } else {
+            setTimeout(function () {
+                loadWebpage()
+            }, 1000);
+        }
     }
 }
 function getTikTok() {
@@ -138,62 +144,64 @@ function getTikTok() {
         }
     }, Math.floor(Math.random() * maxRandomForLikedDownload + minRandomForLikedDownload));
 }
-async function getUserVideo() {
+function clickNextButton() {
+    console.log("Clicking next button");
+    if (document.querySelectorAll("[data-e2e=arrow-right]").length > 0) {
+        console.log("Clicking next button...");
+        document.querySelector("[data-e2e=arrow-right]").click();
+        setTimeout(function () {
+            getUserVideo();
+        }, Math.floor(Math.random() * maxRandom + minRandom))
+    }
+}
+function ytDlpScript() {
+    var ytDlpString = "";
     var videoClass = document.body.getElementsByClassName("tiktok-x6y88p-DivItemContainerV2");
-    var integer = 0;
-    function videoGet() {
-        infoText.innerHTML = "Downloading video " + (integer + 1) + " of " + videoClass.length;
-        var htmlContent = videoClass[integer].innerHTML;
+    for (let i = 0; i < videoClass.length; i++) {
+        var videoClass = document.body.getElementsByClassName("tiktok-x6y88p-DivItemContainerV2");
+        var htmlContent = videoClass[i].innerHTML;
         var getLink = htmlContent.substring(htmlContent.indexOf("href=\"")).replace("href=\"");
         getLink = getLink.substring(0, getLink.indexOf("\""));
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.open("GET", document.location.href, false);
-        xmlHttp.send(null);
-        var documentBody = xmlHttp.responseText;
-        var webLink = documentBody.substring(documentBody.indexOf("\"preloadList\":[{\"url\":\"")).replace("\"preloadList\":[{\"url\":\"", "");
-        webLink = webLink.substring(0, webLink.indexOf("\"")).replaceAll("\\u002F", "/");
-        videoLink[integer] = webLink;
-        var getDesc = htmlContent.substring(htmlContent.indexOf("alt=\"")).replace("alt=\"", "");
-        getDesc = getDesc.substring(0, getDesc.indexOf("\""))
-        videoDesc[integer] = getDesc;
-        var getVideoId = getLink.substring(getLink.indexOf("/video/")).replace("/video/", "");
-        videoId = getVideoId;
-        var userName = document.location.href.substring(document.location.href.indexOf("@"));
-        userName = userName.substring(0, userName.indexOf("/"));
-        videoName[integer] = userName;
-        if (!DownloadViaYtDlp) {
-            forceDownload(webLink, getDesc.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "") + "[" + userName + " - " + getVideoId + "].mp4");
-            downloadProgress++;
-            if (downloadProgress < videoLink.length) {
-                actuallyDownload();
-            }
+        if (getLink.indexOf("undefined") !== -1) {
+            getLink = getLink.replaceAll("undefined", "");
         }
-        integer = integer + 1;
-        setNextVideoGet();
+        ytDlpString = ytDlpString + beforeYtDlp + "yt-dlp " + getLink + "\n";
     }
-    videoGet();
-    function setNextVideoGet() {
-        if (DownloadViaYtDlp) {
-            var ytDlpString = "";
-            for (let i = 0; i < videoClass.length; i++) {
-                var htmlContent = videoClass[i].innerHTML;
-                var getLink = htmlContent.substring(htmlContent.indexOf("href=\"")).replace("href=\"");
-                getLink = getLink.substring(0, getLink.indexOf("\""));
-                if (getLink.indexOf("undefined") !== -1) {
-                    getLink = getLink.replaceAll("undefined", "");
-                }
-                ytDlpString = ytDlpString + beforeYtDlp + "yt-dlp " + getLink + "\n";
-            }
-            forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent(ytDlpString), "TikTokContent." + fileExtension);
-        } else {
-            if (integer < videoClass.length) {
-                setInterval(function () {
-                    videoGet();
-                }, Math.floor(Math.random() * maxRandom + minRandom));
-            }
-        }
-
+    forceDownload("data:text/plain;charset=utf-8," + encodeURIComponent(ytDlpString), "TikTokContent." + fileExtension);
+}
+var integer = 0;
+async function getUserVideo() {
+    infoText.innerHTML = "Downloading video " + (integer + 1);
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", document.location.href, false);
+    xmlHttp.send(null);
+    var documentBody = xmlHttp.responseText;
+    var webLink = documentBody.substring(documentBody.indexOf("\"preloadList\":[{\"url\":\"")).replace("\"preloadList\":[{\"url\":\"", "");
+    webLink = webLink.substring(0, webLink.indexOf("\"")).replaceAll("\\u002F", "/");
+    videoLink[integer] = webLink;
+    let videoDescList = document.querySelector("[data-e2e=browse-video-desc]").innerHTML;
+    function deleteUseless() {
+        videoDescList = videoDescList.replace(videoDescList.substring(videoDescList.indexOf("<"), videoDescList.indexOf(">") + 1));
     }
+    function lookLoop() {
+        if (videoDescList.indexOf("<") != -1) deleteUseless();
+        if (videoDescList.indexOf("<") != -1) lookLoop();
+    }
+    lookLoop();
+    videoDescList = videoDescList.replaceAll("undefined", "");
+    var getVideoId = document.location.href.substring(document.location.href.indexOf("/video/")).replace("/video/", "");
+    if (getVideoId.indexOf("?") != -1) getVideoId = getVideoId.substring(0, getVideoId.indexOf("?"));
+    videoId = getVideoId;
+    var userName = document.location.href.substring(document.location.href.indexOf("@"));
+    userName = userName.substring(0, userName.indexOf("/"));
+    videoName[integer] = userName;
+    forceDownload(webLink, videoDescList.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "") + "[" + userName + " - " + getVideoId + "].mp4");
+    downloadProgress++;
+    if (downloadProgress < videoLink.length) {
+        actuallyDownload();
+    }
+    integer = integer + 1;
+    clickNextButton();
 }
 function prepareYtDlp() {
     var setupYtDlpScript = "";
