@@ -15,3 +15,9 @@ By default, to avoid lots of calls to the server, videos are downloaded from a r
 If you don't want the TikTok watermark onto your downloaded videos, you can generate a script that will use [yt-dlp](https://github.com/yt-dlp/yt-dlp) to download the TikTok video. For that, change the value of the DownloadViaYtDlp variable to true (in the first line). 
 
 Then, open the file in the same folder you've downloaded yt-dlp (if you're on Windows, otherwise you can install yt-dlp from your package manager).
+
+If you need to add a "./" before every line of the script (if you have yt-dlp in the same folder and not installed system-wide on macOS/Linux for example), you can edit the value of "YtDlpFolder" to true
+
+### Warning
+
+I don't claim any responsibilties at all for the usage of this script and the consequences. 
