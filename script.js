@@ -49,7 +49,7 @@ function clickOn() {
         videoId = videoId.substring(0, videoId.indexOf("\""));
         var videoAuthor = document.location.href.substring(document.location.href.indexOf("@"));
         videoAuthor = videoAuthor.substring(0, videoAuthor.indexOf("/"));
-        var composeFileName = description + " - " + videoId + " [" + videoAuthor + "]";
+        var composeFileName = description + " - " + videoId + " [" + videoAuthor + "].mp4";
         composeFileName = composeFileName.replaceAll("/", "").replaceAll("?", "").replaceAll("<", "").replaceAll(">", "").replaceAll("\\", "").replaceAll(":", "").replaceAll("*", "").replaceAll("|", "").replaceAll("\"", "");
         forceDownload(webLink, composeFileName);
     } else if (document.location.href.substring(document.location.href.lastIndexOf("/")).indexOf(getUserId) == -1 || preferScrolling) {
